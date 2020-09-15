@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "colloid-lexer",
+    "colloid-parser"
+]
+
