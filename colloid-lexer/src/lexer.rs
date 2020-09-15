@@ -1,6 +1,7 @@
-use crate::tokens::{Token, TokenType};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+
+use crate::token::{Token, TokenType};
 
 #[derive(Debug)]
 pub struct Lexer {
@@ -13,7 +14,7 @@ pub struct Lexer {
 
 #[derive(Debug)]
 pub enum LexerError {
-    UnexpectedInput(char)
+    UnexpectedInput(Token)
 }
 
 pub type TokenResult = std::result::Result<Token, LexerError>;
@@ -22,7 +23,7 @@ pub type Tokens = Vec<TokenResult>;
 impl Display for LexerError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            LexerError::UnexpectedInput(input) => write!(f, "Unexpected input: {}", input)
+            LexerError::UnexpectedInput(input) => write!(f, "Unexpected input: {}", input.lexeme)
         }
     }
 }
@@ -84,7 +85,7 @@ impl Lexer {
             },
             '(' => Ok(self.make_token(TokenType::LeftParenthesis)),
             ')' => Ok(self.make_token(TokenType::RightParenthesis)),
-            _ => Err(LexerError::UnexpectedInput(c))
+            _ => Err(LexerError::UnexpectedInput(self.make_token(TokenType::Error)))
         }
     }
 
@@ -95,6 +96,7 @@ impl Lexer {
             token_type,
             lexeme,
             line: self.line,
+            //column: if token_type == TokenType::EndOfFile {0} else {self.column - 1},
             column: self.column,
         }
     }
@@ -118,9 +120,11 @@ impl Lexer {
             if c.is_whitespace() && c != '\n' {
                 self.advance();
             } else {
-                return;
+                break;
             }
         }
+
+        self.start = self.current;
     }
 }
 
@@ -128,5 +132,47 @@ impl From<String> for Lexer {
     #[inline]
     fn from(source: String) -> Self {
         Lexer::new(source)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_some_parenthesis() {
+        let mut lexer = Lexer::new(String::from("   (\t\n )\n"));
+        let tokens = lexer.lex();
+        assert_eq!(tokens.len(), 5);
+        assert_eq!(tokens[0].as_ref().unwrap().clone(), Token {
+            token_type: TokenType::LeftParenthesis,
+            lexeme: String::from("("),
+            line: 1,
+            column: 4,
+        });
+        assert_eq!(tokens[1].as_ref().unwrap().clone(), Token {
+            token_type: TokenType::EndOfLine,
+            lexeme: String::from("\n"),
+            line: 1,
+            column: 6,
+        });
+        assert_eq!(tokens[2].as_ref().unwrap().clone(), Token {
+            token_type: TokenType::RightParenthesis,
+            lexeme: String::from(")"),
+            line: 2,
+            column: 2,
+        });
+        assert_eq!(tokens[3].as_ref().unwrap().clone(), Token {
+            token_type: TokenType::EndOfLine,
+            lexeme: String::from("\n"),
+            line: 2,
+            column: 3,
+        });
+        assert_eq!(tokens[4].as_ref().unwrap().clone(), Token {
+            token_type: TokenType::EndOfFile,
+            lexeme: String::from(""),
+            line: 3,
+            column: 0,
+        });
     }
 }
