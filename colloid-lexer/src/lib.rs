@@ -1,7 +1,7 @@
 mod tokens;
 mod lexer;
 
-pub use tokens::{TokenType, Token, Tokens};
+pub use tokens::{TokenType, Token};
 
 #[cfg(test)]
 mod tests {

@@ -1,4 +1,4 @@
-use crate::tokens::{Tokens, Token, TokenType};
+use crate::tokens::{Token, TokenType};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
@@ -16,7 +16,8 @@ pub enum LexerError {
     UnexpectedInput(char)
 }
 
-pub type Result = std::result::Result<Token, LexerError>;
+pub type TokenResult = std::result::Result<Token, LexerError>;
+pub type Tokens = Vec<TokenResult>;
 
 impl Display for LexerError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -43,12 +44,27 @@ impl Lexer {
     pub fn lex(&mut self) -> Tokens {
         let mut tokens = Tokens::new();
 
+        loop {
+            let token = self.scan_token();
+            let mut end = false;
+            if let Ok(t) = &token {
+                if t.token_type == TokenType::EndOfFile {
+                    end = true;
+                }
+            }
+
+            tokens.push(token);
+
+            if end {
+                break;
+            }
+        }
 
         //tokens.push(self.make_token(TokenType::EndOfFile));
         tokens
     }
 
-    fn scan_token(&mut self) -> Result {
+    fn scan_token(&mut self) -> TokenResult {
         self.start = self.current;
 
         if self.is_at_end() {
@@ -98,9 +114,11 @@ impl Lexer {
     }
 
     fn skip_whitespace(&mut self) {
-        if let Some(c) = self.peek() {
+        while let Some(c) = self.peek() {
             if c.is_whitespace() && c != '\n' {
                 self.advance();
+            } else {
+                return;
             }
         }
     }

@@ -18,8 +18,6 @@ pub struct Token {
     pub column: u32
 }
 
-pub type Tokens = Vec<Token>;
-
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "'{}'[{:?}]@{}:{}", self.lexeme, self.token_type, self.line, self.column)
