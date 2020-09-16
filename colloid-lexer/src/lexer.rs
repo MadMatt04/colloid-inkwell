@@ -82,7 +82,7 @@ impl Lexer {
                 self.line += 1;
                 self.column = 0;
                 Ok(nl)
-            },
+            }
             '(' => Ok(self.make_token(TokenType::LeftParenthesis)),
             ')' => Ok(self.make_token(TokenType::RightParenthesis)),
             _ => Err(LexerError::UnexpectedInput(self.make_token(TokenType::Error)))
