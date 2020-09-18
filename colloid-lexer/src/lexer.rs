@@ -79,6 +79,7 @@ impl Lexer {
         self.start = self.current;
 
         if self.is_at_end() {
+            self.column += 1;
             return Ok(self.make_token(TokenType::EndOfFile));
         }
 
@@ -198,7 +199,7 @@ mod tests {
                 token_type: TokenType::EndOfFile,
                 lexeme: String::from(""),
                 line: 3,
-                column: 0,
+                column: 1,
             }
         );
     }
@@ -251,7 +252,7 @@ mod tests {
                 token_type: TokenType::EndOfFile,
                 lexeme: String::new(),
                 line: 1,
-                column: 3, // TODO hmmm
+                column: 4
             },
         );
     }
